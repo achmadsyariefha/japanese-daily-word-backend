@@ -1,0 +1,64 @@
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+model User {
+    id        String   @id @default(uuid())
+    email     String   @unique
+    password  String
+    name      String?
+    dailyTargetLimit Int  @default(1)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    entries DailyEntry[]
+    reviewSessions ReviewSession[]
+}
+
+model DailyEntry {
+    id        String   @id @default(uuid())
+    date      String
+    japanese  String
+    reading   String
+    romaji    String?
+    translation String
+    notes     String?
+    exampleSentence  ExampleSentence?
+    tags      String[] @default([])    
+    isFavorite Boolean @default(false)
+    userId    String
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([userId, date])
+    @@index([userId, isFavorite])
+}
+
+model ExampleSentence {
+    id        String      @id @default(uuid())
+    japanese  String
+    reading   String?
+    translation String
+    entryId   String @unique
+    entry  DailyEntry  @relation(fields: [entryId], references: [id], onDelete: Cascade)
+}
+
+model ReviewSession {
+    id        String      @id @default(uuid())
+    dateKey   String
+    filterMode String @default("all") 
+    currentIndex Int @default(0)
+    userId    String
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    knownCardIds String[] @default([])
+    needReviewCardIds String[] @default([])
+    lastUpdated DateTime @updatedAt
+
+    @@unique([userId, dateKey, filterMode])
+}
