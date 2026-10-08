@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
-import { LoginInput, RegisterInput } from "../schemas/auth.schema";
+import { LoginInput, RegisterInput, UpdateProfileInput } from "../schemas/auth.schema";
 import bcrypt from "bcrypt";
 import { signToken } from "../utils/jwt";
 
@@ -66,3 +66,23 @@ export const me = async (req: Request, res: Response) => {
     }
     res.status(200).json(user);
 };
+
+export const updateMe = async (req: Request, res: Response) => {
+    const data = req.body as UpdateProfileInput;
+    
+    const user = await prisma.user.update({
+        where: { id: req.userId },
+        data,
+        select: {
+            id: true,
+            email: true,
+            name: true,
+            dailyTargetLimit: true,
+        },
+    });
+
+    res.status(200).json(user);
+};
+    
+
+    
